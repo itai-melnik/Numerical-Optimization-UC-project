@@ -5,8 +5,8 @@ import pandas as pd
 from pyomo.opt import SolverFactory
 
 # Load data from CSVs
-gen_df = pd.read_csv("Data/IEEE73_Data_Gen.csv")
-load_df = pd.read_csv("Data/IEEE73_Data_Load.csv")
+gen_df = pd.read_csv("data/IEEE73_Data_Gen.csv")
+load_df = pd.read_csv("data/IEEE73_Data_Load.csv")
 
 # Extract data
 # demand_series = load_df.iloc[0]
@@ -93,48 +93,15 @@ for g in model.G:
 # --- Solve ---
 solver = SolverFactory('cbc')
 #options just testing
+#TODO: take options from user input
 solver.options.update({
-    'seconds': 120,        # Max time in seconds
-    'ratioGap': 0.01,      # 1% optimality gap
+    'seconds': 500,        # Max time in seconds
+    'ratioGap': 0.001,      # 1% optimality gap
     'maxSolutions': 1      # Stop after first feasible solution
 })
 results = solver.solve(model, tee=True, )
 
-# # --- Output ---
-# print("\n--- Generator Commitment Schedule (u[g, t]) ---")
-# for g in model.G:
-#     for t in model.T:
-#         if value(model.u[g, t]) > 0.5:  # Binary variable
-#             print(f"Generator {g} ON at hour {t}")
-            
-            
-# print("\n--- Generator Power Output (p[g, t]) ---")
-# for g in model.G:
-#     for t in model.T:
-#         p_val = value(model.p[g, t])
-#         if p_val > 0.01:  # Filter tiny values
-#             print(f"Generator {g} produces {p_val:.2f} MW at hour {t}")
-# #model.u.display()
-# # model.y.display()
-# # model.z.display()
 
-
-#TODO: move to utils.py
-# --- Export Results to CSV ---
-import pandas as pd
-
-# Create empty DataFrames for u and p
-u_df = pd.DataFrame(index=sorted(model.T), columns=sorted(model.G))
-p_df = pd.DataFrame(index=sorted(model.T), columns=sorted(model.G))
-
-# Fill DataFrames with model values
-for g in model.G:
-    for t in model.T:
-        u_df.at[t, g] = int(round(value(model.u[g, t])))
-        p_df.at[t, g] = float(value(model.p[g, t]))
-
-# Save to CSV
-u_df.index.name = "Hour"
-p_df.index.name = "Hour"
-u_df.to_csv("generator_commitment.csv")
-p_df.to_csv("generator_output.csv")
+# --- Export results to csv ---
+from utils import save_csv
+save_csv(model)
