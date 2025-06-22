@@ -1,8 +1,7 @@
 from pyomo.environ import *
-
-
 import pandas as pd
 from pyomo.opt import SolverFactory
+
 
 # Load data from CSVs
 gen_df = pd.read_csv("data/IEEE73_Data_Gen.csv")
@@ -37,7 +36,7 @@ model.DT = Param(model.G, initialize={str(i): gen_df.loc[i, "commitment_minimum_
 model.D = Param(model.B, model.T, initialize={(str(b), t): load_df.loc[b, str(t)] for b in load_df.index for t in time_periods})
 model.R = Param(model.T, initialize={t: 0.10 * sum(load_df.loc[b, str(t)] for b in load_df.index)for t in time_periods}) #10% of total demand
 
-# --- Variables ---
+# --- Decision Variables ---
 model.u = Var(model.G, model.T, domain=Binary)
 model.y = Var(model.G, model.T, domain=Binary)
 model.z = Var(model.G, model.T, domain=Binary)
@@ -55,9 +54,9 @@ model.TotalCost = Objective(rule=total_cost_rule, sense=minimize)
 model.logic = ConstraintList()
 for g in model.G:
     for t in model.T:
-        if model.T.ord(t) > 1:
-            t_prev = model.T.prev(t)
-            model.logic.add(model.u[g, t] - model.u[g, t_prev] == model.y[g, t] - model.z[g, t])
+        if model.T.ord(t) > 1: #check if NOT the first time period 
+            t_prev = model.T.prev(t) #t_prev = t - 1
+            model.logic.add(model.u[g, t] - model.u[g, t_prev] == model.y[g, t] - model.z[g, t]) 
         model.logic.add(model.y[g, t] + model.z[g, t] <= 1)
 
 model.gen_limits = ConstraintList()
@@ -96,7 +95,7 @@ solver = SolverFactory('cbc')
 #TODO: take options from user input
 solver.options.update({
     'seconds': 500,        # Max time in seconds
-    'ratioGap': 0.001,      # 1% optimality gap
+    'ratioGap': 0.01,      # 1% optimality gap
     'maxSolutions': 1      # Stop after first feasible solution
 })
 results = solver.solve(model, tee=True, )
