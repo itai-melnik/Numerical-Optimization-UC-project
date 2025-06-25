@@ -89,16 +89,29 @@ for g in model.G:
         if model.T.ord(t) <= len(model.T) - value(model.DT[g]) + 1:
             model.updown.add(sum(1 - model.u[g, tau] for tau in model.T if model.T.ord(tau) >= model.T.ord(t) and model.T.ord(tau) < model.T.ord(t) + value(model.DT[g])) >= model.DT[g] * model.z[g, t])
 
-# --- Solve ---
-solver = SolverFactory('cbc')
-#options just testing
-#TODO: take options from user input
-solver.options.update({
-    'seconds': 500,        # Max time in seconds
-    'ratioGap': 0.01,      # 1% optimality gap
-    'maxSolutions': 1      # Stop after first feasible solution
-})
-results = solver.solve(model, tee=True, )
+# # --- Solve CBC (open source) ---
+# solver = SolverFactory('cbc')
+
+# #options just testing
+# #TODO: take options from user input
+# solver.options.update({
+#     'seconds': 500,        # Max time in seconds
+#     'ratioGap': 0.01,      # 1% optimality gap
+#     'maxSolutions': 1    # Stop after first feasible solution
+# })
+
+# # --- Solve Gurobi (needs license)---
+# solver = SolverFactory('gurobi')
+
+# results = solver.solve(model, tee=True, )
+
+# solver.options.update([
+#     'TimeLimit': 10,     # Max wall‑clock time in seconds
+#     'MIPGap': 0.01,       # 1 % optimality gap
+#     'SolutionLimit': 1    # Stop after first feasible solution
+# ])
+
+# results = solver.solve(model, tee=True)
 
 
 # --- Export results to csv ---
