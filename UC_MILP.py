@@ -58,7 +58,7 @@ model.r = Var(model.G, model.T, domain=NonNegativeReals)
 # --- Objective Function ---
 def total_cost_rule(m):
     return sum(
-        m.C_fuel[g] * m.p[g, t] + m.C_nl[g] * m.u[g, t] + m.C_su[g] * m.y[g, t]
+        m.C_fuel[g] * m.p_bar[g, t] + m.C_nl[g] * m.u[g, t] + m.C_su[g] * m.y[g, t]
         for g in m.G for t in m.T
     )
 model.TotalCost = Objective(rule=total_cost_rule, sense=minimize)
@@ -70,6 +70,8 @@ for g in model.G:
         if model.T.ord(t) > 1: #check if NOT the first time period 
             t_prev = model.T.prev(t) #t_prev = t - 1
             model.logic.add(model.u[g, t] - model.u[g, t_prev] == model.y[g, t] - model.z[g, t]) 
+        if model.T.ord(t) == 1:
+            model.logic.add(model.y[g, t] == model.u[g, t])
         model.logic.add(model.y[g, t] + model.z[g, t] <= 1)
 
 model.gen_limits = ConstraintList()
