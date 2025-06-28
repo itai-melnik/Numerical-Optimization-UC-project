@@ -1,0 +1,3 @@
+generation_lower_limit,generation_upper_limit,generation_variable_cost_pu,commitment_no_load_cost,commitment_start_up_cost,hourly_ramping_limit,startup_ramp_limit,shutdown_ramp_limit,commitment_minimum_up_time,commitment_minimum_down_time
+20,100,10,100,200,50,80,80,1,1
+10,50,15,80,150,30,40,40,1,1

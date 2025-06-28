@@ -2,15 +2,23 @@ from pyomo.environ import *
 import pandas as pd
 from pyomo.opt import SolverFactory
 
+# --- Load data ---
+gen_df  = pd.read_csv("data/sanity_check_gen.csv")      # path to toy file
+load_df = pd.read_csv("data/sanity_check_load.csv", index_col=0)
+
+# --- Sets ---
+time_periods = list(range(1, 4))   # 3 hours
+...
+
 
 # Load data from CSVs
-gen_df = pd.read_csv("data/IEEE73_Data_Gen.csv")
-load_df = pd.read_csv("data/IEEE73_Data_Load.csv")
+# gen_df = pd.read_csv("data/IEEE73_Data_Gen.csv")
+# load_df = pd.read_csv("data/IEEE73_Data_Load.csv")
 
 # Extract data
 # demand_series = load_df.iloc[0]
 buses = list(load_df.index.astype(str))  # One row = one bus
-time_periods = list(range(1, 25))
+# time_periods = list(range(1, 25))
 generators = list(gen_df.index.astype(str))
 
 
@@ -98,12 +106,14 @@ for g in model.G:
 
 
 
-# --- Solve Gurobi (needs license)---
-solver = SolverFactory('gurobi')
+# # --- Solve Gurobi (needs license)---
+# solver = SolverFactory('gurobi')
 
-#Options
-solver.options['TimeLimit'] = 120
-solver.options['MIPGap'] = 0.0001
+# #Options
+# solver.options['TimeLimit'] = 120
+# solver.options['MIPGap'] = 0.001
+
+solver = SolverFactory('cbc')
 
 results = solver.solve(model, tee=True)
 
@@ -120,7 +130,7 @@ save_csv(model)
 
 
 # # --- Solve CBC (open source) ---
-# solver = SolverFactory('cbc')
+
 
 # #options just testing
 # solver.options.update({

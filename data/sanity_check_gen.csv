@@ -1,0 +1,3 @@
+generator_location_bus_id,generation_lower_limit,generation_upper_limit,is_must_run_unit,is_fast_ramp_up_unit,generation_variable_cost_pu,commitment_start_up_cost,commitment_no_load_cost,commitment_minimum_up_time,commitment_minimum_down_time,hourly_ramping_limit,start_up_ramping_limit,shut_down_ramping_limit,fast_ramping_limit
+0,10,50,0,0,20,100,50,1,1,50,50,50,50
+1,10,40,0,0,30,50,20,1,1,40,40,40,40
