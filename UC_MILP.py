@@ -2,23 +2,14 @@ from pyomo.environ import *
 import pandas as pd
 from pyomo.opt import SolverFactory
 
-# --- Load data ---
-gen_df  = pd.read_csv("data/sanity_check_gen.csv")      # path to toy file
-load_df = pd.read_csv("data/sanity_check_load.csv", index_col=0)
-
-# --- Sets ---
-time_periods = list(range(1, 4))   # 3 hours
-...
-
 
 # Load data from CSVs
-# gen_df = pd.read_csv("data/IEEE73_Data_Gen.csv")
-# load_df = pd.read_csv("data/IEEE73_Data_Load.csv")
+gen_df = pd.read_csv("data/IEEE73_Data_Gen.csv")
+load_df = pd.read_csv("data/IEEE73_Data_Load.csv")
 
 # Extract data
-# demand_series = load_df.iloc[0]
 buses = list(load_df.index.astype(str))  # One row = one bus
-# time_periods = list(range(1, 25))
+time_periods = list(range(1, 25))
 generators = list(gen_df.index.astype(str))
 
 
@@ -39,7 +30,6 @@ model.C_nl = Param(model.G, initialize={str(i): gen_df.loc[i, "commitment_no_loa
 model.C_su = Param(model.G, initialize={str(i): gen_df.loc[i, "commitment_start_up_cost"] for i in gen_df.index})
 model.RU = Param(model.G, initialize={str(i): gen_df.loc[i, "hourly_ramping_limit"] for i in gen_df.index})
 model.RD = Param(model.G, initialize={str(i): gen_df.loc[i, "hourly_ramping_limit"] for i in gen_df.index})
-# Startup / shutdown ramp limits (MW)
 model.SU = Param(model.G, initialize={str(i): gen_df.loc[i, "startup_ramp_limit"] if "startup_ramp_limit" in gen_df.columns else gen_df.loc[i, "hourly_ramping_limit"] for i in gen_df.index})
 model.SD = Param(model.G, initialize={str(i): gen_df.loc[i, "shutdown_ramp_limit"] if "shutdown_ramp_limit" in gen_df.columns else gen_df.loc[i, "hourly_ramping_limit"] for i in gen_df.index})
 model.UT = Param(model.G, initialize={str(i): gen_df.loc[i, "commitment_minimum_up_time"] for i in gen_df.index})
@@ -68,9 +58,9 @@ model.logic = ConstraintList()
 for g in model.G:
     for t in model.T:
         if model.T.ord(t) > 1: #check if NOT the first time period 
-            t_prev = model.T.prev(t) #t_prev = t - 1
+            t_prev = model.T.prev(t) #t_prev = t - 1 
             model.logic.add(model.u[g, t] - model.u[g, t_prev] == model.y[g, t] - model.z[g, t]) 
-        if model.T.ord(t) == 1:
+        if model.T.ord(t) == 1: #we assume cold start
             model.logic.add(model.y[g, t] == model.u[g, t])
         model.logic.add(model.y[g, t] + model.z[g, t] <= 1)
 
@@ -108,17 +98,14 @@ for g in model.G:
 
 
 
-# # --- Solve Gurobi (needs license)---
-# solver = SolverFactory('gurobi')
+# --- Solve Gurobi (needs license)---
+
+solver = SolverFactory('gurobi')
 
 # #Options
-# solver.options['TimeLimit'] = 120
-# solver.options['MIPGap'] = 0.001
-
-solver = SolverFactory('cbc')
-
+solver.options['TimeLimit'] = 120
+solver.options['MIPGap'] = 0.0001
 results = solver.solve(model, tee=True)
-
 
 # --- Export results to csv ---
 from utils import save_csv
@@ -133,6 +120,7 @@ save_csv(model)
 
 # # --- Solve CBC (open source) ---
 
+# solver = SolverFactory('cbc')
 
 # #options just testing
 # solver.options.update({
